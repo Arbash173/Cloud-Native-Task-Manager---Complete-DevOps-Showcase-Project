@@ -14,6 +14,10 @@ jobs:
   # Security and Code Quality Checks
   security-scan:
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -26,9 +30,14 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
 
+      - name: Create empty SARIF file if none exists
+        if: hashFiles('trivy-results.sarif') == ''
+        run: |
+          echo '{"version": "2.1.0", "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json", "runs": [{"tool": {"driver": {"name": "Trivy", "version": "0.0.0"}}, "results": []}]}' > trivy-results.sarif
+
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && hashFiles('trivy-results.sarif') != ''
         with:
           sarif_file: 'trivy-results.sarif'
 
@@ -39,6 +48,8 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+        with:
+          upload: true
 
   # Frontend Tests
   frontend-test:

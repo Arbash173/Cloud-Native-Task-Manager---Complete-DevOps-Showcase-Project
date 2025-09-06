@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -69,7 +68,7 @@ func main() {
 	// Start server
 	log.Printf("Notification service starting on port %s", port)
 	log.Printf("CORS Origins: %s", corsOrigins)
-	
+
 	if err := http.ListenAndServe(":"+port, router); err != nil {
 		log.Fatal("Server failed to start:", err)
 	}

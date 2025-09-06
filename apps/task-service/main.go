@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -14,7 +12,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/mux"
-	"github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // Task represents a task in the system
@@ -46,9 +44,9 @@ type UpdateTaskRequest struct {
 
 // TaskService handles task operations
 type TaskService struct {
-	db              *sql.DB
-	authServiceURL  string
-	corsOrigins     string
+	db             *sql.DB
+	authServiceURL string
+	corsOrigins    string
 }
 
 // Claims represents JWT claims
@@ -87,7 +85,7 @@ func main() {
 	log.Printf("Database: %s", databaseURL)
 	log.Printf("Auth Service URL: %s", authServiceURL)
 	log.Printf("CORS Origins: %s", corsOrigins)
-	
+
 	if err := http.ListenAndServe(":"+port, router); err != nil {
 		log.Fatal("Server failed to start:", err)
 	}

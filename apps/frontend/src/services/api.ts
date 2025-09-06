@@ -96,7 +96,7 @@ class ApiClient {
   }
 
   private addAuthInterceptor() {
-    const addToken = (config: AxiosRequestConfig) => {
+    const addToken = (config: any) => {
       const token = this.getToken();
       if (token) {
         config.headers = config.headers || {};

@@ -121,19 +121,21 @@ jobs:
         working-directory: ./apps/notification-service
         run: go test -v -race -coverprofile=coverage.out ./...
 
-      - name: Run Go security check
+      - name: Run Go security check for auth-service
+        working-directory: ./apps/auth-service
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest
-          
-          # Run govulncheck for each service
-          echo "Running security check for auth-service..."
-          cd apps/auth-service && govulncheck ./... && cd ../..
-          
-          echo "Running security check for task-service..."
-          cd apps/task-service && govulncheck ./... && cd ../..
-          
-          echo "Running security check for notification-service..."
-          cd apps/notification-service && govulncheck ./... && cd ../..
+          govulncheck ./...
+
+      - name: Run Go security check for task-service
+        working-directory: ./apps/task-service
+        run: |
+          govulncheck ./...
+
+      - name: Run Go security check for notification-service
+        working-directory: ./apps/notification-service
+        run: |
+          govulncheck ./...
 
   # Build and Push Docker Images
   build-and-push:

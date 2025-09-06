@@ -1,17 +1,14 @@
-import { API_BASE_URL } from '../config/api';
-
-// Mock the config
-jest.mock('../config/api', () => ({
-  API_BASE_URL: 'http://localhost:8080',
-}));
+import { API_ENDPOINTS } from '../config/api';
 
 describe('API Configuration', () => {
-  test('API_BASE_URL is defined', () => {
-    expect(API_BASE_URL).toBeDefined();
-    expect(typeof API_BASE_URL).toBe('string');
+  test('API_ENDPOINTS is defined', () => {
+    expect(API_ENDPOINTS).toBeDefined();
+    expect(typeof API_ENDPOINTS).toBe('object');
   });
 
-  test('API_BASE_URL has correct format', () => {
-    expect(API_BASE_URL).toMatch(/^https?:\/\//);
+  test('API_ENDPOINTS has required endpoints', () => {
+    expect(API_ENDPOINTS.LOGIN).toBeDefined();
+    expect(API_ENDPOINTS.TASKS).toBeDefined();
+    expect(API_ENDPOINTS.NOTIFICATIONS).toBeDefined();
   });
 });

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useTasks } from '../contexts/TaskContext';
-import { CreateTaskRequest, UpdateTaskRequest } from '../services/api';
 
 const TaskList: React.FC = () => {
   const { tasks, isLoading, error, fetchTasks, createTask, updateTask, deleteTask } = useTasks();

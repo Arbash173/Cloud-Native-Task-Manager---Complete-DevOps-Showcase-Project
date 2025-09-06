@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  # Frontend React Application
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8080
+      - REACT_APP_TASK_API_URL=http://localhost:8081
+      - REACT_APP_NOTIFICATION_API_URL=http://localhost:8082
+    depends_on:
+      - auth-service
+      - task-service
+      - notification-service
+    networks:
+      - app-network
+
+  # Authentication Service
+  auth-service:
+    build:
+      context: ./apps/auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATABASE_URL=./data/auth.db
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:8080
+    volumes:
+      - auth-data:/app/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Task Management Service
+  task-service:
+    build:
+      context: ./apps/task-service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - PORT=8081
+      - DATABASE_URL=./data/tasks.db
+      - AUTH_SERVICE_URL=http://auth-service:8080
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:8081
+    volumes:
+      - task-data:/app/data
+    depends_on:
+      - auth-service
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ./apps/notification-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - PORT=8082
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:8082
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  auth-data:
+  task-data:
+
+networks:
+  app-network:
+    driver: bridge

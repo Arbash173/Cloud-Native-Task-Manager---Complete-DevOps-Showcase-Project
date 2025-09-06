@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # Frontend React Application
+  frontend:
+    image: ghcr.io/${GITHUB_REPOSITORY}-frontend:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=${AUTH_SERVICE_URL}
+      - REACT_APP_TASK_API_URL=${TASK_SERVICE_URL}
+      - REACT_APP_NOTIFICATION_API_URL=${NOTIFICATION_SERVICE_URL}
+      - REACT_APP_APP_NAME=${APP_NAME:-Task Manager}
+      - REACT_APP_VERSION=${APP_VERSION:-1.0.0}
+    depends_on:
+      - auth-service
+      - task-service
+      - notification-service
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Authentication Service
+  auth-service:
+    image: ghcr.io/${GITHUB_REPOSITORY}-auth:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATABASE_URL=${DATABASE_URL:-./data/auth.db}
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+    volumes:
+      - auth-data:/app/data
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Task Management Service
+  task-service:
+    image: ghcr.io/${GITHUB_REPOSITORY}-task:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - PORT=8081
+      - DATABASE_URL=${DATABASE_URL:-./data/tasks.db}
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+    volumes:
+      - task-data:/app/data
+    depends_on:
+      - auth-service
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Notification Service
+  notification-service:
+    image: ghcr.io/${GITHUB_REPOSITORY}-notification:latest
+    ports:
+      - "8082:8082"
+    environment:
+      - PORT=8082
+      - CORS_ORIGINS=${CORS_ORIGINS}
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  auth-data:
+    driver: local
+  task-data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

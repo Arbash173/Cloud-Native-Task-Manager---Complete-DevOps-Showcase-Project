@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # Frontend React Application
+  frontend:
+    image: ghcr.io/${GITHUB_REPOSITORY}-frontend:staging
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=${AUTH_SERVICE_URL}
+      - REACT_APP_TASK_API_URL=${TASK_SERVICE_URL}
+      - REACT_APP_NOTIFICATION_API_URL=${NOTIFICATION_SERVICE_URL}
+      - REACT_APP_APP_NAME=${APP_NAME:-Task Manager (Staging)}
+      - REACT_APP_VERSION=${APP_VERSION:-staging}
+    depends_on:
+      - auth-service
+      - task-service
+      - notification-service
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Authentication Service
+  auth-service:
+    image: ghcr.io/${GITHUB_REPOSITORY}-auth:staging
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATABASE_URL=${DATABASE_URL:-./data/auth.db}
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+    volumes:
+      - auth-data:/app/data
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Task Management Service
+  task-service:
+    image: ghcr.io/${GITHUB_REPOSITORY}-task:staging
+    ports:
+      - "8081:8081"
+    environment:
+      - PORT=8081
+      - DATABASE_URL=${DATABASE_URL:-./data/tasks.db}
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+    volumes:
+      - task-data:/app/data
+    depends_on:
+      - auth-service
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Notification Service
+  notification-service:
+    image: ghcr.io/${GITHUB_REPOSITORY}-notification:staging
+    ports:
+      - "8082:8082"
+    environment:
+      - PORT=8082
+      - CORS_ORIGINS=${CORS_ORIGINS}
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  auth-data:
+    driver: local
+  task-data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

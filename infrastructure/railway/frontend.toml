@@ -1,0 +1,16 @@
+[build]
+builder = "DOCKERFILE"
+dockerfile = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+[env]
+REACT_APP_API_URL = "${{RAILWAY_AUTH_SERVICE_URL}}"
+REACT_APP_TASK_API_URL = "${{RAILWAY_TASK_SERVICE_URL}}"
+REACT_APP_NOTIFICATION_API_URL = "${{RAILWAY_NOTIFICATION_SERVICE_URL}}"
+REACT_APP_APP_NAME = "Task Manager"
+REACT_APP_VERSION = "1.0.0"

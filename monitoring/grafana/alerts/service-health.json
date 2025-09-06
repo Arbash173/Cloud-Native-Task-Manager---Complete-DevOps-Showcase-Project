@@ -1,0 +1,69 @@
+{
+  "alertRules": [
+    {
+      "alert": "ServiceDown",
+      "expr": "up{job=~\"auth-service|task-service|notification-service\"} == 0",
+      "for": "1m",
+      "labels": {
+        "severity": "critical",
+        "service": "{{ $labels.job }}"
+      },
+      "annotations": {
+        "summary": "Service {{ $labels.job }} is down",
+        "description": "Service {{ $labels.job }} has been down for more than 1 minute"
+      }
+    },
+    {
+      "alert": "HighErrorRate",
+      "expr": "rate(http_requests_total{status=~\"5..\"}[5m]) > 0.1",
+      "for": "2m",
+      "labels": {
+        "severity": "warning",
+        "service": "{{ $labels.job }}"
+      },
+      "annotations": {
+        "summary": "High error rate for {{ $labels.job }}",
+        "description": "Error rate for {{ $labels.job }} is above 10% for more than 2 minutes"
+      }
+    },
+    {
+      "alert": "HighResponseTime",
+      "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1",
+      "for": "3m",
+      "labels": {
+        "severity": "warning",
+        "service": "{{ $labels.job }}"
+      },
+      "annotations": {
+        "summary": "High response time for {{ $labels.job }}",
+        "description": "95th percentile response time for {{ $labels.job }} is above 1 second for more than 3 minutes"
+      }
+    },
+    {
+      "alert": "HighMemoryUsage",
+      "expr": "go_memstats_alloc_bytes / 1024 / 1024 > 100",
+      "for": "5m",
+      "labels": {
+        "severity": "warning",
+        "service": "{{ $labels.job }}"
+      },
+      "annotations": {
+        "summary": "High memory usage for {{ $labels.job }}",
+        "description": "Memory usage for {{ $labels.job }} is above 100MB for more than 5 minutes"
+      }
+    },
+    {
+      "alert": "DatabaseConnectionHigh",
+      "expr": "sqlite_connections_active > 10",
+      "for": "2m",
+      "labels": {
+        "severity": "warning",
+        "service": "{{ $labels.job }}"
+      },
+      "annotations": {
+        "summary": "High database connections for {{ $labels.job }}",
+        "description": "Database connections for {{ $labels.job }} are above 10 for more than 2 minutes"
+      }
+    }
+  ]
+}
